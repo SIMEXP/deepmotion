@@ -163,12 +163,12 @@ def _coreg(params, *args):
     # return score
 
 def rad2deg(params):
-    params_c = params.copy()
+    params_c = np.array(params).copy()
     params_c[3:, ...] = (params_c[3:, ...] / np.pi) * 180.
     return params_c
 
 def deg2rad(params):
-    params_c = params.copy()
+    params_c = np.array(params).copy()
     params_c[3:, ...] = (params_c[3:, ...] * np.pi) / 180.
     return params_c
 
