@@ -22,9 +22,7 @@ def resample_trans(sv, sv2sw_affine, tv2tw_affine, tv_shape, sw2tw_affine=np.eye
     ndimout = transform_affine.shape[1] - 1
     matrix = transform_affine[0:ndimin, 0:ndimout]
     vector = transform_affine[0:ndimin, ndimout]
-    print matrix,vector
-
-    print tv_shape
+    #print matrix,vector
 
     # interpolation
     new_volume = ndimage.affine_transform(sv, matrix,
