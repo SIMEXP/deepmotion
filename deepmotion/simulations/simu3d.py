@@ -16,6 +16,7 @@ def avgpool3d(hr_vols, k=3):
 
 
 def apply_signal(template, N=1000, mu_gm=80., sigma_gm=0.05, binary_threshold=0.2):
+    ref_vol = template.copy()
     # sigma is a % of the basline mu
     sigma = sigma_gm * mu_gm
     wm = np.ones((N,)) * 70.
