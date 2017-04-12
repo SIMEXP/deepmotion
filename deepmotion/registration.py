@@ -34,6 +34,7 @@ def resample_trans(sv, sv2sw_affine, tv2tw_affine, tv_shape, sw2tw_affine=np.eye
     # print(time.time() - start)
     return new_volume
 
+
 def apply_affine(aff, pts):
     """ Apply affine matrix `aff` to points `pts`
     Returns result of application of `aff` to the *right* of `pts`.  The
@@ -93,7 +94,6 @@ def apply_affine(aff, pts):
     return res.reshape(shape)
 
 
-
 def aff_tsf(xt, yt, zt, xr, yr, zr, inv_affine=False):
     A = np.eye(4)
     transf = np.eye(4)
@@ -128,7 +128,7 @@ def aff_tsf(xt, yt, zt, xr, yr, zr, inv_affine=False):
         rot_inv = npl.inv(rot)
         A[:3, :3] = rot_inv[:3, :3]
         A[:3, 3] = -rot_inv[:3, :3].dot(transf[:3, 3])
-        #A = npl.inv(transf.dot(rot))
+        # A = npl.inv(transf.dot(rot))
     else:
         A = transf.dot(rot)
     return A
@@ -139,8 +139,9 @@ def _aff_trans(params, *args):
     coreg_vol = resample_trans(args[1], args[2], args[3], args[4], sw2tw_affine=transf)
     return coreg_vol, transf
 
+
 def transform(vol, params, v2w, inv_affine=False, rotation_unit='deg'):
-    if rotation_unit=='deg':
+    if rotation_unit == 'deg':
         params = deg2rad(params)
     params = list(params)
     params.append(inv_affine)
@@ -153,8 +154,8 @@ def _coreg(params, *args):
     mask_ = args[5]
     coreg_vol, _ = _aff_trans(params, *args)
 
-    #coreg_vol = gaussian_filter(coreg_vol, 0.5, 0)
-    #score = np.corrcoef(coreg_vol.ravel(), args[0].ravel())
+    # coreg_vol = gaussian_filter(coreg_vol, 0.5, 0)
+    # score = np.corrcoef(coreg_vol.ravel(), args[0].ravel())
     score = np.corrcoef(coreg_vol[mask_], args[0][mask_])
     # print score
     # print score[0,1]
@@ -162,21 +163,24 @@ def _coreg(params, *args):
     return 1 - score[0, 1]
     # return score
 
+
 def rad2deg(params):
     params_c = np.array(params).copy().astype(float)
     params_c[3:, ...] = (params_c[3:, ...] / np.pi) * 180.
     return params_c
+
 
 def deg2rad(params):
     params_c = np.array(params).copy().astype(float)
     params_c[3:, ...] = (params_c[3:, ...] * np.pi) / 180.
     return params_c
 
+
 def coreg(vols, affine, ref='median'):
-    if ref=='median':
+    if ref == 'median':
         coreg_vols, transf, motion_params = fit(source=vols, v2w_source=affine, target=np.median(vols, 3),
                                                 v2w_target=affine, mask=[], verbose=False, stride=2, dowsamp_flag=True)
-    elif ref=='first':
+    elif ref == 'first':
         coreg_vols, transf, motion_params = fit(source=vols, v2w_source=affine, target=vols[..., 0],
                                                 v2w_target=affine, mask=[], verbose=False, stride=2, dowsamp_flag=True)
     elif ref == 'last':
@@ -188,17 +192,18 @@ def coreg(vols, affine, ref='median'):
 
     return coreg_vols, transf, motion_params
 
-def fit(source, v2w_source, target, v2w_target, mask = [], verbose = False, stride=2,dowsamp_flag=True):
+
+def fit(source, v2w_source, target, v2w_target, mask=[], verbose=False, stride=2, dowsamp_flag=True):
     # TODO add initialization params for each frame based on the precedent param
     # TODO change size of the target matrix for faster evaluation
-    coreg_vols    = []
-    transfs       = []
+    coreg_vols = []
+    transfs = []
     motion_params = []
     nframes = 1
 
-    if mask==[]:
+    if mask == []:
         mask = np.ones_like(target).astype(bool)
-    #else:
+    # else:
     #    mask[::stride, :, :] = False
     #    mask[:, ::stride, :] = False
     #    mask[::stride+1, :, :] = False
@@ -214,8 +219,8 @@ def fit(source, v2w_source, target, v2w_target, mask = [], verbose = False, stri
         tv2tw_affine[:3, :3] = tv2tw_affine[:3, :3] * 2.
 
         target_downsamp = resample_trans(target, np.copy(v2w_target), tv2tw_affine, tv_shape)
-        #target_downsamp = gaussian_filter(target_downsamp, 0.5, 0)
-        #mask_down = np.ones_like(target_downsamp).astype(bool)
+        # target_downsamp = gaussian_filter(target_downsamp, 0.5, 0)
+        # mask_down = np.ones_like(target_downsamp).astype(bool)
         mask_down = resample_trans(mask, np.copy(v2w_target), tv2tw_affine, tv_shape)
 
     for frame in range(nframes):
@@ -223,7 +228,6 @@ def fit(source, v2w_source, target, v2w_target, mask = [], verbose = False, stri
             source_ = source
         else:
             source_ = source[..., frame]
-
 
         if dowsamp_flag:
             '''
@@ -236,15 +240,16 @@ def fit(source, v2w_source, target, v2w_target, mask = [], verbose = False, stri
             #mask = np.ones_like(target_downsamp).astype(bool)
             mask = resample_trans(mask, v2w_target, tv2tw_affine, tv_shape)
             '''
-            #source_ = resample_trans(source_, v2w_source, tv2tw_affine, tv_shape)
-            #v2w_source = tv2tw_affine
+            # source_ = resample_trans(source_, v2w_source, tv2tw_affine, tv_shape)
+            # v2w_source = tv2tw_affine
             # Rough estimate
             params = fmin_powell(func=_coreg, x0=np.zeros((1, 6))[0, :],
-                                 args=(target_downsamp, source_, v2w_source, tv2tw_affine, target_downsamp.shape, mask_down),
+                                 args=(
+                                 target_downsamp, source_, v2w_source, tv2tw_affine, target_downsamp.shape, mask_down),
                                  xtol=0.0001, ftol=0.005, disp=verbose)
 
             # Fine tuned estimate
-            #params = fmin_powell(func=_coreg, x0=params,
+            # params = fmin_powell(func=_coreg, x0=params,
             #                     args=(target, source_, v2w_source, v2w_target, target.shape, mask),
             #                     xtol=0.0001, ftol=0.005, disp=verbose)
         else:
@@ -271,7 +276,7 @@ def displacement_field(v2w, motion_params, vol_shape, rotation_unit='deg'):
     a = np.zeros(vol_shape)
     coord_voxel = np.array(np.where(a == 0)).T
 
-    if rotation_unit=='deg':
+    if rotation_unit == 'deg':
         motion_params = deg2rad(motion_params)
 
     if len(motion_params.shape) == 1:
@@ -301,4 +306,3 @@ def displacement_field(v2w, motion_params, vol_shape, rotation_unit='deg'):
         motion_fields.append(motion_field)
 
     return np.stack(motion_fields)
-
