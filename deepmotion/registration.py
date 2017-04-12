@@ -1,18 +1,16 @@
+import numpy as np
+import numpy.linalg as npl
+from scipy import ndimage
+from scipy.optimize import fmin_powell
+
 __author__ = 'Christian Dansereau'
 
 '''
 Tools for registration of 3D volumes
 '''
 
-import numpy as np
-import numpy.linalg as npl
-from scipy import ndimage
-from scipy.optimize import fmin_powell
-
-
 def resample_trans(sv, sv2sw_affine, tv2tw_affine, tv_shape, sw2tw_affine=np.eye(4)):
     # transform
-    # start = time.time()
     transform_affine = npl.inv(np.dot(npl.inv(tv2tw_affine), np.dot(sw2tw_affine, sv2sw_affine)))
 
     # Split an homogeneous transform into its matrix and vector components.
@@ -24,16 +22,16 @@ def resample_trans(sv, sv2sw_affine, tv2tw_affine, tv_shape, sw2tw_affine=np.eye
     ndimout = transform_affine.shape[1] - 1
     matrix = transform_affine[0:ndimin, 0:ndimout]
     vector = transform_affine[0:ndimin, ndimout]
-    # print matrix,vector
+    print matrix,vector
+
+    print tv_shape
 
     # interpolation
     new_volume = ndimage.affine_transform(sv, matrix,
                                           offset=vector,
                                           output_shape=tv_shape,
                                           order=1)
-    # print(time.time() - start)
     return new_volume
-
 
 def apply_affine(aff, pts):
     """ Apply affine matrix `aff` to points `pts`
