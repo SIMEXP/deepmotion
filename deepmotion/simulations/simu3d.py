@@ -8,8 +8,9 @@ def avgpool3d(hr_vols, k=3):
     with tf.device('/gpu:0'):
         x = tf.placeholder(tf.float32, shape=(hr_vols.shape[0], hr_vols.shape[1], hr_vols.shape[2], hr_vols.shape[3], 1))
         y = tf.nn.avg_pool3d(x, ksize=[1, k, k, k, 1], strides=[1, k, k, k, 1], padding='SAME')
-        init = tf.global_variables_initializer()
+
     with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
         results = sess.run(y, feed_dict={x: hr_vols[:, ...][..., np.newaxis]})
 
     lr_vols = results[..., 0]
