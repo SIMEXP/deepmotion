@@ -40,11 +40,11 @@ def apply_signal(template, N=1000, mu_gm=80., sigma_gm=0.05, binary_threshold=0.
 
     return vols
 
-def apply_motion(vols, v2w, motion_params):
+def apply_motion(vols, v2w, motion_params, inv_affine=False):
     # generate a simulation of N time points
     vols_motion = []
     for i in range(len(motion_params)):
-        coreg_vol, transf = registration.transform(vols[i, ...], motion_params[i], v2w)
+        coreg_vol, transf = registration.transform(vols[i, ...], motion_params[i], v2w, inv_affine=inv_affine)
         vols_motion.append(coreg_vol)
     vols_motion = np.stack(vols_motion)
     return vols_motion
