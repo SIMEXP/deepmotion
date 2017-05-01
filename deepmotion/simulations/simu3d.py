@@ -78,3 +78,56 @@ def object_generator(shape, w_size=[], stride=[6, 6, 6], center=[], obj_type='2s
 
     return vol, v2w
 
+def vexpension(motion_params, n_var=24):
+    new_params = []
+    new_params.append(motion_params.copy())
+    
+    new_params.append(motion_params.copy()**2)
+    if n_var == 12:
+        return np.hstack(new_params)
+    
+    new_params.append((np.vstack(([0,0,0,0,0,0],motion_params))[:-1,:]-motion_params))
+    new_params.append((np.vstack(([0,0,0,0,0,0],motion_params**2))[:-1,:]-motion_params**2))
+    
+    if n_var == 24:
+        return np.hstack(new_params)
+    
+
+def gen_sim(ref_vol=[], v2w=[], motion_params=[], n_samples = 1000):
+    
+    ### Generate template object
+    if ref_vol==[]:
+        # default fallback
+        ref_vol, v2w = object_generator([64,64,33], [30, 30, 30])
+    
+    ### Apply motion
+    if motion_params == []:
+        motion_params = np.zeros((n_samples, 6))
+        motion_params[:,[0,1,2]] = np.random.randn(n_samples,3)*0.5+2.
+        motion_params[:,[3,4,5]] = np.random.randn(n_samples,3)*2.+1.
+        
+    ### Apply signal   
+    hr_vols = apply_signal(ref_vol,motion_params.shape[0], binary_threshold=0.2)
+    
+    ### Avg pooling
+    lr_vols = avgpool3d(hr_vols, k=3)
+
+    ### Apply motion
+    hr_vols_motion = apply_motion(hr_vols, v2w, motion_params)
+    
+    ### Avg pooling with noise
+    lr_vols_motion = avgpool3d(hr_vols_motion, k=3)
+    lr_vols_motion = lr_vols_motion + np.random.randn(*lr_vols_motion.shape)  
+    
+    ### Linear correction inv transf
+    v2w_lr = v2w.copy()
+    v2w_lr[:3,:3] = v2w[:3,:3]*3.
+    v2w_lr[:-1,3] = v2w[:-1,3]
+
+    lr_vols_motion_cor = apply_motion(lr_vols_motion, v2w_lr, motion_params, inv_affine=True)
+    
+    ### Motion field
+    motion_field = registration.displacement_field(np.eye(4),motion_params, lr_vols.shape[1:])%3.
+    
+    return {'hr_vols':hr_vols, 'lr_vols':lr_vols, 'hr_vols_motion':hr_vols_motion, 'lr_vols_motion':lr_vols_motion, 'lr_vols_motion_cor':lr_vols_motion_cor, 'v2w':v2w, 'v2w_lr':v2w_lr, 'motion_field':motion_field, 'motion_params':motion_params}
+    

@@ -1,2 +1,2 @@
-# deepmotion
-correction of motion artefacts in fMRI using deep learning models
+# Deepmotion 
+Correction of motion artefacts in fMRI using deep convolutional learning models
