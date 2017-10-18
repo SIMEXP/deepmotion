@@ -136,7 +136,7 @@ def _aff_trans(params, *args):
     return coreg_vol, transf
 
 
-def transform(vol, params, v2w, inv_affine=False, rotation_unit='deg'):
+def _transform(vol, params, v2w, inv_affine=False, rotation_unit='deg'):
     if rotation_unit == 'deg':
         params = deg2rad(params)
     params = list(params)
@@ -144,6 +144,25 @@ def transform(vol, params, v2w, inv_affine=False, rotation_unit='deg'):
     transf = aff_tsf(*params)
     coreg_vol = resample_trans(vol, v2w, v2w, vol.shape, sw2tw_affine=transf)
     return coreg_vol, transf
+
+
+def transform(vol, params, v2w, inv_affine=False, rotation_unit='deg'):
+    nframes = 1
+    coreg_vols = []
+    transf = []
+
+    if len(params.shape) > 1:
+        nframes = params.shape[0]
+
+        for frame in range(nframes):
+            cor_vol, aff = _transform(vol[..., frame], params[frame, ...], v2w, inv_affine, rotation_unit)
+            coreg_vols.append(cor_vol)
+            transf.append(aff)
+
+    else:
+        coreg_vols, transf = _transform(vol, params, v2w, inv_affine, rotation_unit)
+
+    return np.stack(coreg_vols), np.stack(transf)
 
 
 def _coreg(params, *args):
