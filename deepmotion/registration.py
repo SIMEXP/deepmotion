@@ -227,7 +227,7 @@ def fit(source, v2w_source, target, v2w_target, mask=[], verbose=False, stride=2
 
         if downsamp_flag:
             '''
-            # dowsample target
+            # downsample target
             tv2tw_affine = np.copy(v2w_target)#np.eye(4)
             tv_shape = np.ceil(np.array(target.shape) / 2.)
             tv2tw_affine[:3, :3] = tv2tw_affine[:3, :3] * 2.
