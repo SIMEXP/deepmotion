@@ -175,21 +175,21 @@ def deg2rad(params):
 def coreg(vols, affine, ref='median'):
     if ref == 'median':
         coreg_vols, transf, motion_params = fit(source=vols, v2w_source=affine, target=np.median(vols, 3),
-                                                v2w_target=affine, mask=[], verbose=False, stride=2, dowsamp_flag=True)
+                                                v2w_target=affine, mask=[], verbose=False, stride=2, downsamp_flag=True)
     elif ref == 'first':
         coreg_vols, transf, motion_params = fit(source=vols, v2w_source=affine, target=vols[..., 0],
-                                                v2w_target=affine, mask=[], verbose=False, stride=2, dowsamp_flag=True)
+                                                v2w_target=affine, mask=[], verbose=False, stride=2, downsamp_flag=True)
     elif ref == 'last':
         coreg_vols, transf, motion_params = fit(source=vols, v2w_source=affine, target=vols[..., -1],
-                                                v2w_target=affine, mask=[], verbose=False, stride=2, dowsamp_flag=True)
+                                                v2w_target=affine, mask=[], verbose=False, stride=2, downsamp_flag=True)
     elif ref == 'mean':
         coreg_vols, transf, motion_params = fit(source=vols, v2w_source=affine, target=np.mean(vols, 3),
-                                                v2w_target=affine, mask=[], verbose=False, stride=2, dowsamp_flag=True)
+                                                v2w_target=affine, mask=[], verbose=False, stride=2, downsamp_flag=True)
 
     return coreg_vols, transf, motion_params
 
 
-def fit(source, v2w_source, target, v2w_target, mask=[], verbose=False, stride=2, dowsamp_flag=True):
+def fit(source, v2w_source, target, v2w_target, mask=[], verbose=False, stride=2, downsamp_flag=True):
     # TODO add initialization params for each frame based on the precedent param
     # TODO change size of the target matrix for faster evaluation
     coreg_vols = []
@@ -208,7 +208,7 @@ def fit(source, v2w_source, target, v2w_target, mask=[], verbose=False, stride=2
     if len(source.shape) > 3:
         nframes = source.shape[3]
 
-    if dowsamp_flag:
+    if downsamp_flag:
         # dowsample target
         tv2tw_affine = np.copy(v2w_target)  # np.eye(4)
         tv_shape = (np.ceil(np.array(target.shape) / 2.)).astype(int)
@@ -225,7 +225,7 @@ def fit(source, v2w_source, target, v2w_target, mask=[], verbose=False, stride=2
         else:
             source_ = source[..., frame]
 
-        if dowsamp_flag:
+        if downsamp_flag:
             '''
             # dowsample target
             tv2tw_affine = np.copy(v2w_target)#np.eye(4)
