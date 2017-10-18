@@ -147,7 +147,7 @@ def _transform(vol, params, v2w, inv_affine=False, rotation_unit='deg'):
 
 
 def transform(vol, params, v2w, inv_affine=False, rotation_unit='deg'):
-    nframes = 1
+
     coreg_vols = []
     transf = []
 
