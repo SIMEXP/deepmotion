@@ -143,8 +143,8 @@ def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
 
-def conv3d(x, W):
-    return tf.nn.conv3d(x, W, strides=[1, 1, 1, 1, 1], padding='SAME')
+def conv3d(x, W, stride=1):
+    return tf.nn.conv3d(x, W, strides=[1, stride, stride, stride, 1], padding='SAME')
 
 def max_pool_2x2(x):
     return tf.nn.max_pool3d(x, ksize=[1, 2, 2, 2, 1],
